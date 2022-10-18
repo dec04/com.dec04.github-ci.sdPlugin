@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name=viewport
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>com.dec04.github-ci.pi</title>
+    <link rel="stylesheet" href="sdpi.css"/>
+    <script src="main_pi.js"></script>
+</head>
+
+<body onload="updateSettings();updateGlobal();">
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">About</div>
+
+    <h4>Why?</h4>
+    <p>I really like the Stream Desk platform, and I use it to the maximum. But unfortunately I did not find the plugins
+        I needed, so I decided to make them myself.</p>
+    <p>These plugin are provided 'as is'.</p>
+    <h4>P.S.</h4>
+    <p>I hope you enjoy extending your Stream Deck with my plugin.</p>
+    <p>Enjoy!</p>
+    <p>Your
+        <mark>Dec04</mark>
+        chaps.
+    </p>
+
+    <div class="wrapper">
+        <div class="item">
+            <div class="message m-warning">
+                <img src="../resources/warning.gif" alt="Warning">
+                <span>Please do not set a title or an image for this plugin as they are
+            being generated on the fly!</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-heading">Settings</div>
+
+    <div class="sdpi-item" id="token">
+        <div class="sdpi-item-label">Token</div>
+        <input class="sdpi-item-value" type="text" id="githubToken" value=""
+               placeholder="e.g. skafasjfnasf79ayw79yf9afak">
+    </div>
+
+    <div class="sdpi-item" id="username">
+        <div class="sdpi-item-label">Username</div>
+        <input class="sdpi-item-value" type="text" id="githubUsername" value="" placeholder="e.g. dec04">
+    </div>
+
+    <div class="sdpi-item" id="repo">
+        <div class="sdpi-item-label">Repository</div>
+        <input class="sdpi-item-value" type="text" id="githubRepo" value="" placeholder="e.g. somerepo">
+    </div>
+
+    <div class="sdpi-item" id="workflow">
+        <div class="sdpi-item-label">Workflow ID</div>
+        <input class="sdpi-item-value" type="number" id="githubWorkflow" value="" placeholder="e.g. 123456789">
+    </div>
+
+
+    <div class="sdpi-item">
+        <div class="wrapper w-100">
+            <div class="item">
+                <div class="message m-info">
+                    <img src="../resources/info.gif" alt="Warning">
+                    <span>Dont forget save!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sdpi-item mb-16" id="saveParamsButton">
+        <button onclick="" class="sdpi-item-value m-success" value="Click Me only">Save</button>
+    </div>
+
+    <div class="sdpi-heading">Information</div>
+
+    <div class="sdpi-item">
+        <details class="message question">
+            <summary>Instructions</summary>
+            <h4>Github:</h4>
+            <p>More information can be found at Github</p>
+            <a class="info" href="#">Check on Github</a>
+        </details>
+    </div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>Parameters</summary>
+            <h4>Details:</h4>
+            <p><span class="code">token</span> - This is the GitHub token;</p>
+            <p><span class="code">name</span> - This is the GitHub username;</p>
+            <p><span class="code">repository</span> - This is the GitHub repository for which you need to check the
+                status of the workflow;</p>
+            <p><span class="code">workflow</span> - This is the GitHub repository workflow id;</p>
+        </details>
+    </div>
+
+
+</div>
+</body>
+</html>
