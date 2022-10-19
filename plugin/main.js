@@ -8,41 +8,103 @@ const GITHUB_WORKFLOWS_PATH = 'actions/workflows';
 
 let periodTimer;
 let timerFlag = false;
-let githubUsername = '';
-let githubRepo = '';
-let githubWorkflow = '';
 let githubToken = '';
-let requestPoolingInterval = 10000;
+const Status = {
+    COMPLETED:       'completed',
+    ACTION_REQUIRED: 'action_required',
+    CANCELLED:       'cancelled',
+    FAILURE:         'failure',
+    NEUTRAL:         'neutral',
+    SKIPPED:         'skipped',
+    STALE:           'stale',
+    SUCCESS:         'success',
+    TIMED_OUT:       'timed_out',
+    IN_PROGRESS:     'in_progress',
+    QUEUED:          'queued',
+    REQUESTED:       'requested',
+    WAITING:         'waiting'
+};
 
-
+/**
+ * Main action, describe all functions for work with Stream Deck SDK and GitHub API;
+ * @type {{onKeyDown: githubCIAction.onKeyDown, onKeyUp: githubCIAction.onKeyUp, setLastError: githubCIAction.setLastError, setTitle: githubCIAction.setTitle, type: string, fetchWorkflow: ((function(*=, *=): Promise<void>)|*), setSettings: githubCIAction.setSettings, githubUsername: string, setRepoName: githubCIAction.setRepoName, githubRepo: string, onWillDisappear: githubCIAction.onWillDisappear, githubWorkflow: string, requestPoolingInterval: number, setState: ((function(*=, *=): Promise<void>)|*), onWillAppear: githubCIAction.onWillAppear, checkBeforeRequest: ((function(*=, *, *): Promise<boolean>)|*), fetchWorkflows: githubCIAction.fetchWorkflows, sendRequest: githubCIAction.sendRequest}}
+ */
 let githubCIAction = {
 
     type: 'com.dec04.github-ci.action',
 
+    /**
+     * Method describe key down logic
+     * @param context action context;
+     * @param settings action settings;
+     * @param coordinates event coordinates;
+     * @param userDesiredState Only set when the action is triggered with a specific value from a Multi-Action.
+     * For example, if the user sets the Game Capture Record action to be disabled in a Multi-Action,
+     * you would see the value 1. 0 and 1 are valid.
+     */
     onKeyDown: function (context, settings, coordinates, userDesiredState) {
-        this.setState(context, 0);
+        this.setState(context, 0).then();
     },
 
+    /**
+     * Method describe key up logic
+     * @param context action context;
+     * @param settings action settings;
+     * @param coordinates event coordinates;
+     * @param userDesiredState Only set when the action is triggered with a specific value from a Multi-Action.
+     * For example, if the user sets the Game Capture Record action to be disabled in a Multi-Action,
+     * you would see the value 1. 0 and 1 are valid.
+     */
     onKeyUp: function (context, settings, coordinates, userDesiredState) {
         this.checkBeforeRequest(context, settings).then(isCorrect => {
             if (isCorrect) {
-                this.fetchWorkflow(context);
+                this.fetchWorkflow(context, settings).then();
             }
         });
     },
 
+    /**
+     * Method describe logic, when application appear to screen;
+     * @param context action context;
+     * @param settings action settings;
+     * @param coordinates event coordinates;
+     */
     onWillAppear: function (context, settings, coordinates) {
-        this.checkSettings(context, settings);
-        this.setTitle(context, githubRepo);
-        this.fetchWorkflow(context);
+        console.debug(`onWillAppear: setTitle: ${settings['githubRepo']}`);
+        this.setRepoName(context, settings).then(() =>
+            this.fetchWorkflow(context, settings).then());
     },
 
+    /**
+     * Method describe logic, when application disappear to screen;
+     * @param context action context;
+     * @param settings action settings;
+     * @param coordinates event coordinates;
+     */
     onWillDisappear: function (context, settings, coordinates) {
         clearInterval(periodTimer);
         timerFlag = false;
-        console.log('Timer clear');
+        console.debug('Timer clear');
     },
 
+    /**
+     * Method describe logic to check and set repo name to application title
+     * @param context action context;
+     * @param settings action settings;
+     * @return {Promise<void>} Promise
+     */
+    setRepoName: async function (context, settings) {
+        if (settings.hasOwnProperty('githubRepo') && settings['githubRepo'] !== '') {
+            this.setTitle(context, settings['githubRepo']);
+        }
+    },
+
+    /**
+     * Method describe logic to set application title
+     * @param context action context;
+     * @param title new title to set;
+     * @return {Promise<void>} Promise
+     */
     setTitle: function (context, title) {
         let json = {
             'event':   'setTitle',
@@ -56,6 +118,11 @@ let githubCIAction = {
         websocket.send(JSON.stringify(json));
     },
 
+    /**
+     * Method describe logic send setting to memory
+     * @param context action context;
+     * @param settings action settings;
+     */
     setSettings: function (context, settings) {
         let json = {
             'event':   'setSettings',
@@ -66,6 +133,11 @@ let githubCIAction = {
         websocket.send(JSON.stringify(json));
     },
 
+    /**
+     * Method describe logic set action state
+     * @param context action context;
+     * @param state action state, depend from manifest file. see actions;
+     */
     setState: async function (context, state) {
         let json = {
             'event':   'setState',
@@ -78,37 +150,47 @@ let githubCIAction = {
         websocket.send(JSON.stringify(json));
     },
 
-    setLastError: function (context, text) {
-        let payload = {
-            'githubUsername':   githubUsername,
-            'githubRepo':       githubRepo,
-            'githubWorkflow':   githubWorkflow,
-            'githubToken':      githubToken,
-            'lastErrorMessage': text
-        };
+    /**
+     * Method describe logic to send to parameter inspector last received error/no error message
+     * @param context action context;
+     * @param settings action settings;
+     */
 
-        this.setSettings(context, payload);
+    setLastError: function (context, settings, text) {
+        // let payload = {
+        //     'githubUsername':   githubUsername,
+        //     'githubRepo':       githubRepo,
+        //     'githubWorkflow':   githubWorkflow,
+        //     'githubToken':      githubToken,
+        //     'lastErrorMessage': text
+        // };
+
+        settings.lastErrorMessage = text;
+
+        this.setSettings(context, settings);
     },
 
-    checkSettings: function (context, settings) {
+    /**
+     * Method describe logic to check, which setting are not defined
+     * @param context action context;
+     * @param settings action settings;
+     * @return {Promise<boolean>} Promise;
+     */
+    checkBeforeRequest: async function (context, settings, checkAllParams) {
         if (settings != null) {
-            githubUsername = settings.hasOwnProperty('githubUsername') ? settings['githubUsername'] : '';
-            githubRepo = settings.hasOwnProperty('githubRepo') ? settings['githubRepo'] : '';
-            githubWorkflow = settings.hasOwnProperty('githubWorkflow') ? settings['githubWorkflow'] : '';
-            requestPoolingInterval = settings.hasOwnProperty('requestPoolingInterval') ? settings['requestPoolingInterval'] : 10000;
-            githubCIAction.setTitle(context, githubRepo);
-        }
-    },
+            let condition = checkAllParams ?
+                            settings.hasOwnProperty('githubUsername') && settings['githubUsername'] === '' ||
+                                settings.hasOwnProperty('githubRepo') && settings['githubRepo'] === '' ||
+                                settings.hasOwnProperty('githubWorkflow') && settings['githubWorkflow'] === '' ||
+                                githubToken === '' :
+                            settings.hasOwnProperty('githubUsername') && settings['githubUsername'] === '' ||
+                                settings.hasOwnProperty('githubRepo') && settings['githubRepo'] === '' ||
+                                githubToken === '';
 
-    checkBeforeRequest: async function (context, settings) {
-        if (settings != null) {
-            if (githubUsername === '' ||
-                githubRepo === '' ||
-                githubWorkflow === '' ||
-                githubToken === '') {
-                console.log(githubUsername, githubRepo, githubWorkflow, githubToken);
+            if (condition) {
                 this.setState(context, 2).then(() => this.setTitle(context, 'SETTINGS!'));
-                this.setLastError(context, `Check settings!<br/>githubUsername: ${githubUsername}<br/> githubRepo: ${githubRepo}<br/> githubWorkflow: ${githubWorkflow}<br/> githubToken: ${githubToken}<br/>`);
+                this.setLastError(context, `Check settings!<br/>githubUsername: ${settings['githubUsername']}<br/> githubRepo: ${settings['githubRepo']}<br/> githubWorkflow: ${settings['githubWorkflow']}<br/> githubToken: ${githubToken}<br/>`);
+
                 return false;
             } else {
                 return true;
@@ -118,77 +200,112 @@ let githubCIAction = {
         }
     },
 
-    fetchWorkflows: function (context) {
-        const url = `${GITHUB_API_URL}/${githubUsername}/${githubRepo}/${GITHUB_WORKFLOWS_PATH}`;
-
+    /**
+     * Method describe logic to fetch workflows id's from GitHub API
+     * @param context action context;
+     * @param settings action settings;
+     */
+    fetchWorkflows: function (context, settings) {
         let self = this;
 
-        this.sendRequest(context, url, (xhr) => {
-            self.setState(context, 5).then(() => {
-                console.log(xhr.response);
-                self.setTitle(context, githubRepo);
-                let payload = {
-                    'githubUsername':   githubUsername,
-                    'githubRepo':       githubRepo,
-                    'githubWorkflow':   githubWorkflow,
-                    'githubToken':      githubToken,
-                    'lastErrorMessage': 'No errors.',
-                    'workflowsIDs':     xhr.response
-                };
-                self.setSettings(context, payload);
-            });
-        });
-    },
+        self.checkBeforeRequest(context, settings, false).then((isCorrect) => {
+            if (isCorrect) {
+                const url = `${GITHUB_API_URL}/${settings['githubUsername']}/${settings['githubRepo']}/${GITHUB_WORKFLOWS_PATH}`;
 
-    fetchWorkflow: async function (context) {
-        const url = `${GITHUB_API_URL}/${githubUsername}/${githubRepo}/${GITHUB_WORKFLOWS_PATH}/${githubWorkflow}/runs`;
+                this.sendRequest(context, settings, url, (xhr) => {
+                    console.debug(xhr.response);
 
-        let self = this;
+                    self.setState(context, 5).then(() => {
+                        self.setTitle(context, settings['githubRepo']);
 
-        this.sendRequest(context, url, (xhr) => {
-            console.log(xhr.response);
+                        // let payload = {
+                        //     'githubUsername':   githubUsername,
+                        //     'githubRepo':       githubRepo,
+                        //     'githubWorkflow':   githubWorkflow,
+                        //     'githubToken':      githubToken,
+                        //     'lastErrorMessage': 'No errors.',
+                        //     'workflowsIDs':     xhr.response
+                        // };
 
-            let responseJson = JSON.parse(xhr.response);
-            let runs = responseJson.workflow_runs;
+                        settings.lastErrorMessage = 'No errors.';
+                        settings.workflowsIDs = xhr.response;
 
-            if (responseJson.total_count > 0) {
-                if (runs[0].status === 'completed') {
-                    self.setState(context, 3).then(() => self.setTitle(context, githubRepo));
-                    clearInterval(timerFlag);
-                    timerFlag = false;
-                } else if (runs[0].status === 'cancelled' ||
-                    runs[0].status === 'action_required' ||
-                    runs[0].status === 'failure' ||
-                    runs[0].status === 'neutral') {
-                    self.setState(context, 6).then(() => self.setTitle(context, githubRepo));
-                    clearInterval(timerFlag);
-                    timerFlag = false;
-                } else if (runs[0].status === 'in_progress' ||
-                    runs[0].status === 'queued' ||
-                    runs[0].status === 'requested' ||
-                    runs[0].status === 'waiting') {
-                    self.setState(context, 7).then(() => self.setTitle(context, githubRepo));
-                    if (!timerFlag) {
-                        periodTimer = setInterval(() => self.fetchWorkflow(context), 15000);
-                        timerFlag = true;
-                    }
-                }
-
-                self.setLastError(context, runs[0].status);
-            } else {
-                self.setState(context, 4).then(() => {
-                    self.setTitle(context, 'Check errors!');
-                    self.setLastError(context, `No runs for this workflow id [${githubWorkflow}]`);
+                        self.setSettings(context, settings);
+                    });
                 });
-                clearInterval(timerFlag);
-                timerFlag = false;
             }
-            //  IMPORTANT: Status can be completed, action_required, cancelled, failure, neutral,
-            //   skipped, stale, success, timed_out, in_progress, queued, requested, waiting
         });
     },
 
-    sendRequest: function (context, url, callback) {
+    /**
+     * Method describe logic to fetch workflows runs from GitHub API
+     * @param context action context;
+     * @param settings action settings;
+     */
+    fetchWorkflow: async function (context, settings) {
+        let self = this;
+
+        self.checkBeforeRequest(context, settings, false).then((isCorrect) => {
+            if (isCorrect) {
+                const url = `${GITHUB_API_URL}/${settings['githubUsername']}/${settings['githubRepo']}/${GITHUB_WORKFLOWS_PATH}/${settings['githubWorkflow']}/runs`;
+
+                this.sendRequest(context, settings, url, (xhr) => {
+                    console.debug(xhr.response);
+
+                    let responseJson = JSON.parse(xhr.response);
+                    let runs = responseJson['workflow_runs'];
+
+                    if (responseJson['total_count'] > 0) {
+                        if (runs[0].status === Status.COMPLETED) {
+
+                            self.setState(context, 3).then(() => self.setTitle(context, settings['githubRepo']));
+                            clearInterval(timerFlag);
+                            timerFlag = false;
+
+                        } else if (runs[0].status === Status.CANCELLED ||
+                            runs[0].status === Status.ACTION_REQUIRED ||
+                            runs[0].status === Status.FAILURE ||
+                            runs[0].status === Status.NEUTRAL) {
+
+                            self.setState(context, 6).then(() => self.setTitle(context, settings['githubRepo']));
+                            clearInterval(timerFlag);
+                            timerFlag = false;
+
+                        } else if (runs[0].status === Status.IN_PROGRESS ||
+                            runs[0].status === Status.QUEUED ||
+                            runs[0].status === Status.REQUESTED ||
+                            runs[0].status === Status.WAITING) {
+
+                            self.setState(context, 7).then(() => self.setTitle(context, settings['githubRepo']));
+
+                            if (!timerFlag) {
+                                periodTimer = setInterval(() => self.fetchWorkflow(context, settings), 15000);
+                                timerFlag = true;
+                            }
+                        }
+
+                        self.setLastError(context, runs[0].status);
+                    } else {
+                        self.setState(context, 4).then(() => {
+                            self.setTitle(context, 'Check errors!');
+                            self.setLastError(context, `No runs for this workflow id [${settings['githubWorkflow']}]`);
+                        });
+                        clearInterval(timerFlag);
+                        timerFlag = false;
+                    }
+                });
+            }
+        });
+    },
+
+    /**
+     * Method describe logic to send XHR Request to GitHub API
+     * @param context action context;
+     * @param settings action settings;
+     * @param url url;
+     * @param callback callback function;
+     */
+    sendRequest: function (context, settings, url, callback) {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', `application/vnd.github+json`);
@@ -202,14 +319,14 @@ let githubCIAction = {
                 callback(xhr);
             } else {
                 self.setState(context, 4).then(() => {
-                    self.setTitle(context, githubRepo);
+                    self.setTitle(context, settings['githubRepo']);
                     self.setLastError(context, xhr.response);
                 });
             }
         };
 
         xhr.onerror = function () { // происходит, только когда запрос совсем не получилось выполнить
-            console.log(`Ошибка соединения`);
+            console.error(`Ошибка соединения`);
 
             self.setState(context, 2).then(() => self.setTitle(context, 'SETTINGS!'));
         };
@@ -256,7 +373,7 @@ function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, in
 
     websocket.onmessage = function (evt) {
         // Received message from Stream Deck
-        console.log(`onMessage: ${evt.data}`);
+        console.debug(`onMessage: ${evt.data}`);
 
         let jsonObj = JSON.parse(evt.data);
         let event = jsonObj['event'];
@@ -266,9 +383,10 @@ function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, in
 
         if (event === 'sendToPlugin') {
             let jsonPayload = jsonObj['payload'];
+            let settings = jsonPayload['settings'];
             if (jsonPayload.hasOwnProperty('piAction')) {
                 console.log(`[sendToPlugin]: ${jsonPayload.piAction}`);
-                githubCIAction.fetchWorkflows(context);
+                githubCIAction.fetchWorkflows(context, settings);
             }
         } else if (event === 'keyDown') {
             let jsonPayload = jsonObj['payload'];
@@ -299,9 +417,10 @@ function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, in
                 githubToken = settings['githubToken'];
             }
         } else if (event === 'didReceiveSettings') {
+            console.debug('didReceiveSettings: checkSettings:');
             let jsonPayload = jsonObj['payload'];
             let settings = jsonPayload['settings'];
-            githubCIAction.checkSettings(context, settings);
+            githubCIAction.setRepoName(context, settings);
         }
     };
 

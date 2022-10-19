@@ -75,13 +75,19 @@ function addWorkflowsAsList(workflows) {
 
 function sendValueToPlugin(value, param) {
     if (websocket && (websocket.readyState === 1)) {
+        let payload = {};
+        let settings = {};
+        settings.githubUsername = document.getElementById('githubUsername').value;
+        settings.githubRepo = document.getElementById('githubRepo').value;
+        settings.githubWorkflow = document.getElementById('githubWorkflow').value;
+        payload.settings = settings;
+        payload[param] = value;
+
         const json = {
             'action':  actionInfo['action'],
             'event':   'sendToPlugin',
             'context': uuid,
-            'payload': {
-                [param]: value
-            }
+            'payload': payload
         };
         websocket.send(JSON.stringify(json));
     }
