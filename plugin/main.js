@@ -6,11 +6,13 @@ let DestinationEnum = Object.freeze({ 'HARDWARE_AND_SOFTWARE': 0, 'HARDWARE_ONLY
 const GITHUB_API_URL = 'https://api.github.com/repos';
 const GITHUB_WORKFLOWS_PATH = 'actions/workflows';
 
-let keyDownTimer;
+let periodTimer;
+let timerFlag = false;
 let githubUsername = '';
 let githubRepo = '';
 let githubWorkflow = '';
 let githubToken = '';
+let requestPoolingInterval = 10000;
 
 
 let githubCIAction = {
@@ -22,12 +24,23 @@ let githubCIAction = {
     },
 
     onKeyUp: function (context, settings, coordinates, userDesiredState) {
-        this.fetchWorkflows(context);
+        this.checkBeforeRequest(context, settings).then(isCorrect => {
+            if (isCorrect) {
+                this.fetchWorkflow(context);
+            }
+        });
     },
 
     onWillAppear: function (context, settings, coordinates) {
         this.checkSettings(context, settings);
         this.setTitle(context, githubRepo);
+        this.fetchWorkflow(context);
+    },
+
+    onWillDisappear: function (context, settings, coordinates) {
+        clearInterval(periodTimer);
+        timerFlag = false;
+        console.log('Timer clear');
     },
 
     setTitle: function (context, title) {
@@ -82,13 +95,100 @@ let githubCIAction = {
             githubUsername = settings.hasOwnProperty('githubUsername') ? settings['githubUsername'] : '';
             githubRepo = settings.hasOwnProperty('githubRepo') ? settings['githubRepo'] : '';
             githubWorkflow = settings.hasOwnProperty('githubWorkflow') ? settings['githubWorkflow'] : '';
+            requestPoolingInterval = settings.hasOwnProperty('requestPoolingInterval') ? settings['requestPoolingInterval'] : 10000;
             githubCIAction.setTitle(context, githubRepo);
+        }
+    },
+
+    checkBeforeRequest: async function (context, settings) {
+        if (settings != null) {
+            if (githubUsername === '' ||
+                githubRepo === '' ||
+                githubWorkflow === '' ||
+                githubToken === '') {
+                console.log(githubUsername, githubRepo, githubWorkflow, githubToken);
+                this.setState(context, 2).then(() => this.setTitle(context, 'SETTINGS!'));
+                this.setLastError(context, `Check settings!<br/>githubUsername: ${githubUsername}<br/> githubRepo: ${githubRepo}<br/> githubWorkflow: ${githubWorkflow}<br/> githubToken: ${githubToken}<br/>`);
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
         }
     },
 
     fetchWorkflows: function (context) {
         const url = `${GITHUB_API_URL}/${githubUsername}/${githubRepo}/${GITHUB_WORKFLOWS_PATH}`;
 
+        let self = this;
+
+        this.sendRequest(context, url, (xhr) => {
+            self.setState(context, 5).then(() => {
+                console.log(xhr.response);
+                self.setTitle(context, githubRepo);
+                let payload = {
+                    'githubUsername':   githubUsername,
+                    'githubRepo':       githubRepo,
+                    'githubWorkflow':   githubWorkflow,
+                    'githubToken':      githubToken,
+                    'lastErrorMessage': 'No errors.',
+                    'workflowsIDs':     xhr.response
+                };
+                self.setSettings(context, payload);
+            });
+        });
+    },
+
+    fetchWorkflow: async function (context) {
+        const url = `${GITHUB_API_URL}/${githubUsername}/${githubRepo}/${GITHUB_WORKFLOWS_PATH}/${githubWorkflow}/runs`;
+
+        let self = this;
+
+        this.sendRequest(context, url, (xhr) => {
+            console.log(xhr.response);
+
+            let responseJson = JSON.parse(xhr.response);
+            let runs = responseJson.workflow_runs;
+
+            if (responseJson.total_count > 0) {
+                if (runs[0].status === 'completed') {
+                    self.setState(context, 3).then(() => self.setTitle(context, githubRepo));
+                    clearInterval(timerFlag);
+                    timerFlag = false;
+                } else if (runs[0].status === 'cancelled' ||
+                    runs[0].status === 'action_required' ||
+                    runs[0].status === 'failure' ||
+                    runs[0].status === 'neutral') {
+                    self.setState(context, 6).then(() => self.setTitle(context, githubRepo));
+                    clearInterval(timerFlag);
+                    timerFlag = false;
+                } else if (runs[0].status === 'in_progress' ||
+                    runs[0].status === 'queued' ||
+                    runs[0].status === 'requested' ||
+                    runs[0].status === 'waiting') {
+                    self.setState(context, 7).then(() => self.setTitle(context, githubRepo));
+                    if (!timerFlag) {
+                        periodTimer = setInterval(() => self.fetchWorkflow(context), 15000);
+                        timerFlag = true;
+                    }
+                }
+
+                self.setLastError(context, runs[0].status);
+            } else {
+                self.setState(context, 4).then(() => {
+                    self.setTitle(context, 'Check errors!');
+                    self.setLastError(context, `No runs for this workflow id [${githubWorkflow}]`);
+                });
+                clearInterval(timerFlag);
+                timerFlag = false;
+            }
+            //  IMPORTANT: Status can be completed, action_required, cancelled, failure, neutral,
+            //   skipped, stale, success, timed_out, in_progress, queued, requested, waiting
+        });
+    },
+
+    sendRequest: function (context, url, callback) {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', `application/vnd.github+json`);
@@ -98,21 +198,8 @@ let githubCIAction = {
         let self = this;
 
         xhr.onload = function (e) {
-
             if (xhr.status === 200) {
-                self.setState(context, 5).then(() => {
-                    console.log(xhr.response);
-                    self.setTitle(context, githubRepo);
-                    let payload = {
-                        'githubUsername':   githubUsername,
-                        'githubRepo':       githubRepo,
-                        'githubWorkflow':   githubWorkflow,
-                        'githubToken':      githubToken,
-                        'lastErrorMessage': 'No errors.',
-                        'workflowsIDs':     xhr.response
-                    };
-                    self.setSettings(context, payload);
-                });
+                callback(xhr);
             } else {
                 self.setState(context, 4).then(() => {
                     self.setTitle(context, githubRepo);
@@ -124,7 +211,7 @@ let githubCIAction = {
         xhr.onerror = function () { // происходит, только когда запрос совсем не получилось выполнить
             console.log(`Ошибка соединения`);
 
-            self.setState(context, 2);
+            self.setState(context, 2).then(() => self.setTitle(context, 'SETTINGS!'));
         };
 
         xhr.onprogress = function (event) {
@@ -132,8 +219,7 @@ let githubCIAction = {
             // event.loaded - количество загруженных байт
             // event.lengthComputable = равно true, если сервер присылает заголовок Content-Length
             // event.total - количество байт всего (только если lengthComputable равно true)
-            self.setTitle(context, 'loading');
-            self.setState(context, 1);
+            self.setState(context, 1).then(() => self.setTitle(context, 'loading'));
         };
     }
 };
@@ -201,6 +287,11 @@ function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, in
             let settings = jsonPayload['settings'];
             let coordinates = jsonPayload['coordinates'];
             githubCIAction.onWillAppear(context, settings, coordinates);
+        } else if (event === 'willDisappear') {
+            let jsonPayload = jsonObj['payload'];
+            let settings = jsonPayload['settings'];
+            let coordinates = jsonPayload['coordinates'];
+            githubCIAction.onWillDisappear(context, settings, coordinates);
         } else if (event === 'didReceiveGlobalSettings') {
             let jsonPayload = jsonObj['payload'];
             let settings = jsonPayload['settings'];

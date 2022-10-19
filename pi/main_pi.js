@@ -47,6 +47,7 @@ function connectElgatoStreamDeckSocket(
             initiateInputElement('githubRepo', payload.githubRepo, '');
             initiateInputElement('githubWorkflow', payload.githubWorkflow, '');
             initiateBlockElement('lastErrorMessage', payload.lastErrorMessage, '');
+            initiateBlockElement('requestPoolingInterval', payload.requestPoolingInterval, '');
             prepareWorkflowsBlock(payload.workflowsIDs);
         }
         if (jsonObj.event === 'didReceiveGlobalSettings') {

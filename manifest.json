@@ -39,6 +39,18 @@
           "Name": "Info",
           "TitleAlignment": "bottom",
           "FontSize": "8"
+        },
+        {
+          "Image": "resources/canceled",
+          "Name": "Canceled",
+          "TitleAlignment": "bottom",
+          "FontSize": "8"
+        },
+        {
+          "Image": "resources/pending",
+          "Name": "Pending",
+          "TitleAlignment": "bottom",
+          "FontSize": "8"
         }
       ],
       "SupportedInMultiActions": false,
