@@ -57,22 +57,6 @@ function connectElgatoStreamDeckSocket(
     };
 }
 
-function prepareWorkflowsBlock(workflowsIDs) {
-    document.getElementById('idsBlock').innerHTML = '';
-    let pl = JSON.parse(workflowsIDs);
-    let messageEl = document.createElement('div');
-    messageEl.className = '';
-    addWorkflowsAsList(pl.workflows);
-}
-
-function addWorkflowsAsList(workflows) {
-    workflows.forEach(workflow => {
-        let pEl = document.createElement('p');
-        pEl.innerHTML = `${workflow.name}: ${workflow.id}`;
-        appendToElement('idsBlock', pEl);
-    });
-}
-
 function sendValueToPlugin(value, param) {
     if (websocket && (websocket.readyState === 1)) {
         let payload = {};
@@ -91,6 +75,19 @@ function sendValueToPlugin(value, param) {
         };
         websocket.send(JSON.stringify(json));
     }
+}
+
+function prepareWorkflowsBlock(workflowsIDs) {
+    addWorkflowsAsList(workflowsIDs);
+}
+
+function addWorkflowsAsList(workflows) {
+    let text = '';
+    workflows.forEach(workflow => {
+        text += `${workflow.name}: ${workflow.id}<br/>`;
+    });
+    initiateBlockElement('idsBlock', '', '');
+    initiateBlockElement('idsBlock', text);
 }
 
 function initiateInputElement(element, value, fallback = '') {

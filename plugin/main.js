@@ -28,9 +28,11 @@ const Status = {
 
 /**
  * Main action, describe all functions for work with Stream Deck SDK and GitHub API;
- * @type {{onKeyDown: githubCIAction.onKeyDown, onKeyUp: githubCIAction.onKeyUp, setLastError: githubCIAction.setLastError, setTitle: githubCIAction.setTitle, type: string, fetchWorkflow: ((function(*=, *=): Promise<void>)|*), setSettings: githubCIAction.setSettings, githubUsername: string, setRepoName: githubCIAction.setRepoName, githubRepo: string, onWillDisappear: githubCIAction.onWillDisappear, githubWorkflow: string, requestPoolingInterval: number, setState: ((function(*=, *=): Promise<void>)|*), onWillAppear: githubCIAction.onWillAppear, checkBeforeRequest: ((function(*=, *, *): Promise<boolean>)|*), fetchWorkflows: githubCIAction.fetchWorkflows, sendRequest: githubCIAction.sendRequest}}
+ * @type {{onKeyDown: githubCIAction.onKeyDown, onKeyUp: githubCIAction.onKeyUp, setLastError: githubCIAction.setLastError, setTitle: ((function(*=, *=): Promise<void>)|*), appTitle: string, type: string, fetchWorkflow: ((function(*=, *=): Promise<void>)|*), setSettings: githubCIAction.setSettings, setRepoName: ((function(*=, *): Promise<void>)|*), onWillDisappear: githubCIAction.onWillDisappear, setState: ((function(*=, *=): Promise<void>)|*), onWillAppear: ((function(*=, *=, *): Promise<void>)|*), checkBeforeRequest: ((function(*=, *=, *): Promise<boolean>)|*), fetchWorkflows: githubCIAction.fetchWorkflows, sendRequest: githubCIAction.sendRequest}}
  */
 let githubCIAction = {
+
+    appTitle: '',
 
     type: 'com.dec04.github-ci.action',
 
@@ -85,11 +87,9 @@ let githubCIAction = {
      * @param coordinates event coordinates;
      */
     onWillDisappear: function (context, settings, coordinates) {
-        this.setState(context, 0).then(() => {
-            clearInterval(periodTimer);
-            clearInterval(periodInterval);
-            timerFlag = false;
-        });
+        clearInterval(periodTimer);
+        clearInterval(periodInterval);
+        timerFlag = false;
     },
 
     /**
@@ -99,9 +99,9 @@ let githubCIAction = {
      * @return {Promise<void>} Promise
      */
     setRepoName: async function (context, settings) {
-        if (settings.hasOwnProperty('githubRepo') && settings['githubRepo'] !== '') {
-            this.setTitle(context, settings['githubRepo']).then();
-        }
+        // if (settings.hasOwnProperty('githubRepo') && settings['githubRepo'] !== '') {
+        this.setTitle(context, settings['githubRepo']).then();
+        // }
     },
 
     /**
@@ -221,8 +221,10 @@ let githubCIAction = {
                     self.setState(context, 5).then(() => {
                         self.setTitle(context, settings['githubRepo']).then();
 
+                        let res = JSON.parse(xhr.response);
+
                         settings.lastErrorMessage = 'No errors.';
-                        settings.workflowsIDs = xhr.response;
+                        settings.workflowsIDs = res.workflows;
 
                         self.setSettings(context, settings);
                     });
