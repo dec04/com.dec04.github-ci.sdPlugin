@@ -8,48 +8,58 @@
           "Image": "resources/actionDefaultImage",
           "Name": "Default",
           "TitleAlignment": "bottom",
+          "ShowTitle": true,
           "FontSize": "8"
         },
         {
           "Image": "resources/loading",
           "Name": "Loading",
+          "Title": "Loading",
           "TitleAlignment": "bottom",
+          "ShowTitle": true,
           "FontSize": "8"
         },
         {
           "Image": "resources/error",
           "Name": "Error",
-          "TitleAlignment": "bottom",
+          "Title": "SETTINGS!",
+          "ShowTitle": true,
           "FontSize": "8"
         },
         {
           "Image": "resources/success",
           "Name": "Success",
+          "Title": "",
           "TitleAlignment": "bottom",
+          "ShowTitle": true,
           "FontSize": "8"
         },
         {
           "Image": "resources/warning",
           "Name": "Warning",
           "TitleAlignment": "bottom",
+          "ShowTitle": false,
           "FontSize": "8"
         },
         {
           "Image": "resources/info",
           "Name": "Info",
           "TitleAlignment": "bottom",
+          "ShowTitle": false,
           "FontSize": "8"
         },
         {
           "Image": "resources/canceled",
           "Name": "Canceled",
           "TitleAlignment": "bottom",
+          "ShowTitle": true,
           "FontSize": "8"
         },
         {
           "Image": "resources/pending",
           "Name": "Pending",
           "TitleAlignment": "bottom",
+          "ShowTitle": true,
           "FontSize": "8"
         }
       ],
