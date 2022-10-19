@@ -42,38 +42,74 @@
 
     <div class="sdpi-item" id="token">
         <div class="sdpi-item-label">Token</div>
-        <input class="sdpi-item-value" type="text" id="githubToken" value=""
+        <input class="sdpi-item-value"
+               id="githubToken"
+               onchange="updateGlobal();"
+               required
+               type="password"
+               value=""
                placeholder="e.g. skafasjfnasf79ayw79yf9afak">
     </div>
 
     <div class="sdpi-item" id="username">
         <div class="sdpi-item-label">Username</div>
-        <input class="sdpi-item-value" type="text" id="githubUsername" value="" placeholder="e.g. dec04">
+        <input class="sdpi-item-value"
+               id="githubUsername"
+               onchange="updateSettings();"
+               placeholder="e.g. dec04"
+               required
+               type="text"
+               value="">
     </div>
 
     <div class="sdpi-item" id="repo">
         <div class="sdpi-item-label">Repository</div>
-        <input class="sdpi-item-value" type="text" id="githubRepo" value="" placeholder="e.g. somerepo">
+        <input class="sdpi-item-value"
+               id="githubRepo"
+               onchange="updateSettings();"
+               placeholder="e.g. somerepo"
+               required
+               type="text"
+               value="">
     </div>
+
+    <div class="sdpi-heading">Workflows</div>
+
+    <div class="sdpi-item mb-16" id="fetchIDsButton">
+        <button class="sdpi-item-value m-load" onclick="sendValueToPlugin('loadWorkflow', 'piAction')" value="">
+            Fetch Workflows ID's
+        </button>
+    </div>
+
+    <div class="fetchedIDs" id="idsBlock"></div>
 
     <div class="sdpi-item" id="workflow">
         <div class="sdpi-item-label">Workflow ID</div>
-        <input class="sdpi-item-value" type="number" id="githubWorkflow" value="" placeholder="e.g. 123456789">
+        <input class="sdpi-item-value"
+               id="githubWorkflow"
+               onchange="updateSettings();"
+               placeholder="e.g. 123456789"
+               type="number"
+               value="">
     </div>
 
+    <div class="sdpi-item mb-16" id="saveParamsButton">
+        <button class="sdpi-item-value m-success" onclick="updateGlobal();updateSettings();" value="">
+            Save
+        </button>
+    </div>
+
+    <div class="sdpi-heading">Errors</div>
 
     <div class="sdpi-item">
         <div class="wrapper w-100">
             <div class="item">
                 <div class="message m-info">
                     <img src="../resources/info.gif" alt="Warning">
-                    <span>Dont forget save!</span>
+                    <span id="lastErrorMessage">This will be the last error message!</span>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="sdpi-item mb-16" id="saveParamsButton">
-        <button onclick="" class="sdpi-item-value m-success" value="Click Me only">Save</button>
     </div>
 
     <div class="sdpi-heading">Information</div>
@@ -83,7 +119,8 @@
             <summary>Instructions</summary>
             <h4>Github:</h4>
             <p>More information can be found at Github</p>
-            <a class="info" href="#">Check on Github</a>
+            <a class="info" href="#" onclick="openPage('github.com/dec04/com.dec04.github-ci.sdPlugin')">Check
+                on Github</a>
         </details>
     </div>
     <div class="sdpi-item">
@@ -97,7 +134,6 @@
             <p><span class="code">workflow</span> - This is the GitHub repository workflow id;</p>
         </details>
     </div>
-
 
 </div>
 </body>

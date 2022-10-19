@@ -1,6 +1,9 @@
-let websocket = null,
-    uuid = null,
-    actionInfo = {};
+// noinspection DuplicatedCode
+
+let websocket    = null,
+    uuid         = null,
+    inActionInfo = null,
+    actionInfo   = {};
 
 function connectElgatoStreamDeckSocket(
     inPort,
@@ -12,24 +15,24 @@ function connectElgatoStreamDeckSocket(
     uuid = inPropertyInspectorUUID;
     actionInfo = JSON.parse(inActionInfo);
 
-    websocket = new WebSocket("ws://localhost:" + inPort);
+    websocket = new WebSocket('ws://localhost:' + inPort);
 
     websocket.onopen = function () {
         // WebSocket is connected, register the Property Inspector
         let json = {
             event: inRegisterEvent,
-            uuid: inPropertyInspectorUUID,
+            uuid:  inPropertyInspectorUUID,
         };
         websocket.send(JSON.stringify(json));
 
         json = {
-            event: "getSettings",
+            event:   'getSettings',
             context: uuid,
         };
         websocket.send(JSON.stringify(json));
 
         json = {
-            event: "getGlobalSettings",
+            event:   'getGlobalSettings',
             context: uuid,
         };
         websocket.send(JSON.stringify(json));
@@ -38,35 +41,59 @@ function connectElgatoStreamDeckSocket(
     websocket.onmessage = function (evt) {
         // Received message from Stream Deck
         const jsonObj = JSON.parse(evt.data);
-        if (jsonObj.event === "didReceiveSettings") {
+        if (jsonObj.event === 'didReceiveSettings') {
             const payload = jsonObj.payload.settings;
-            initiateElement("githubUsername", payload.githubUsername, '');
-            initiateElement("githubRepo", payload.githubRepo, '');
-            initiateElement("githubWorkflow", payload.githubWorkflow, '');
+            initiateInputElement('githubUsername', payload.githubUsername, '');
+            initiateInputElement('githubRepo', payload.githubRepo, '');
+            initiateInputElement('githubWorkflow', payload.githubWorkflow, '');
+            initiateBlockElement('lastErrorMessage', payload.lastErrorMessage, '');
         }
-        if (jsonObj.event === "didReceiveGlobalSettings") {
+        if (jsonObj.event === 'didReceiveGlobalSettings') {
             const payload = jsonObj.payload.settings;
-            initiateElement("githubToken", payload.githubToken, '');
+            initiateInputElement('githubToken', payload.githubToken, '');
         }
     };
 }
 
-function initiateElement(element, value, fallback = "") {
-    if (typeof value === "undefined") {
+// TODO: Send to plugin!
+function sendValueToPlugin(value, param) {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'action':  actionInfo['action'],
+            'event':   'sendToPlugin',
+            'context': uuid,
+            'payload': {
+                [param]: value
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
+
+function initiateInputElement(element, value, fallback = '') {
+    if (typeof value === 'undefined') {
         document.getElementById(element).value = fallback;
         return;
     }
     document.getElementById(element).value = value;
 }
 
+function initiateBlockElement(element, value, fallback = '') {
+    if (typeof value === 'undefined') {
+        document.getElementById(element).innerHTML = fallback;
+        return;
+    }
+    document.getElementById(element).innerHTML = value;
+}
+
 function updateSettings() {
     if (websocket && websocket.readyState === 1) {
         let payload = {};
-        payload.githubUsername = document.getElementById("githubUsername").value;
-        payload.githubRepo = document.getElementById("githubRepo").value;
-        payload.githubWorkflow = document.getElementById("githubWorkflow").value;
+        payload.githubUsername = document.getElementById('githubUsername').value;
+        payload.githubRepo = document.getElementById('githubRepo').value;
+        payload.githubWorkflow = document.getElementById('githubWorkflow').value;
         const json = {
-            event: "setSettings",
+            event:   'setSettings',
             context: uuid,
             payload: payload,
         };
@@ -77,10 +104,10 @@ function updateSettings() {
 function updateGlobal() {
     if (websocket && websocket.readyState === 1) {
         let payload = {};
-        payload.githubToken = document.getElementById("githubToken").value;
+        payload.githubToken = document.getElementById('githubToken').value;
 
         const json = {
-            event: "setGlobalSettings",
+            event:   'setGlobalSettings',
             context: uuid,
             payload,
         };
@@ -91,7 +118,7 @@ function updateGlobal() {
 function openPage(site) {
     if (websocket && websocket.readyState === 1) {
         const json = {
-            event: "openUrl",
+            event:   'openUrl',
             payload: {
                 url: `https://${site}`,
             },

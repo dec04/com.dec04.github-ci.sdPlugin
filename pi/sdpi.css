@@ -28,6 +28,10 @@ html {
     --pi-success-color: #16a34a50;
     --pi-success-color-hover: #65a30d80;
     --pi-success-color-active: #65a30d;
+    --pi-load-border-color: #ca8a04;
+    --pi-load-color: #ca8a0450;
+    --pi-load-color-hover: #ca8a0480;
+    --pi-load-color-active: #fbbf24;
     --pi-code-background: #9a9a9a40;
     --pi-code-border-color: #9a9a9a;
     height: 100%;
@@ -1686,6 +1690,7 @@ input[type="range"].colortemperature::-webkit-slider-thumb {
 .context-menu_message {
     cursor: default;
 }
+
 /*endregion*/
 
 /*region Dec04*/
@@ -1731,6 +1736,7 @@ input[type="range"].colortemperature::-webkit-slider-thumb {
 }
 
 button {
+    margin-top: 16px;
     padding: 8px !important;
     height: auto !important;
     max-height: 48px;
@@ -1757,6 +1763,23 @@ button {
     color: white;
 }
 
+.m-load {
+    border-radius: 4px;
+    border: 1px solid var(--pi-load-border-color);
+    background-color: var(--pi-load-color);
+    transition: all 0.3s ease;
+}
+
+.m-load:hover {
+    cursor: pointer;
+    background-color: var(--pi-load-color-hover);
+}
+
+.m-load:active {
+    background-color: var(--pi-load-color-active);
+    color: white;
+}
+
 /*endregion*/
 
 p span.code {
@@ -1771,7 +1794,8 @@ p span.code {
 }
 
 input[type="text"],
-input[type="number"] {
+input[type="number"]
+input[type="password"] {
     border-radius: 4px;
 }
 
@@ -1781,4 +1805,5 @@ span.success-icon {
     width: 24px;
     height: 24px;
 }
+
 /*endregion*/
