@@ -11,7 +11,8 @@
     <script src="main_pi.js"></script>
 </head>
 
-<body onload="updateSettings();updateGlobal();">
+<!--<body onload="updateSettings();updateGlobal();">-->
+<body>
 <div class="sdpi-wrapper">
 
     <div class="sdpi-heading">About</div>
@@ -118,7 +119,7 @@
         </button>
     </div>
 
-    <div class="sdpi-heading">Errors</div>
+    <div class="sdpi-heading">Errors / No errors / Response text</div>
 
     <div class="sdpi-item">
         <div class="wrapper w-100">
@@ -136,6 +137,16 @@
     <div class="sdpi-item">
         <details class="message question">
             <summary>Instructions</summary>
+            <h4>Steps:</h4>
+            <p>1. Get GitHub token <a class="info" href="https://github.com/settings/tokens">On GitHub</a>;</p>
+            <p>2. Fill the field <br/><span class="code">token</span> with received value;</p>
+            <p>3. Set GitHub username in field <br/><span class="code">username</span>;</p>
+            <p>4. Set GitHub repository <br/><span class="code">repository</span>;</p>
+            <p>5. Push the button <br/><span class="code">Fetch Workflows ID's</span>;</p>
+            <p>6. Select the GitHub action you are interested and fill the field <br/><span class="code">workflow</span>
+                with the value of its ID;</p>
+            <p>7. Click <span class="code">save</span> button;</p>
+            <p>8. If any trouble, see <br/><span class="code">Errors / No errors / Response text</span> block;</p>
             <h4>Github:</h4>
             <p>More information can be found at Github</p>
             <a class="info" href="#" onclick="openPage('github.com/dec04/com.dec04.github-ci.sdPlugin')">Check

@@ -1801,6 +1801,9 @@ button {
 }
 
 /*endregion*/
+.message p {
+    line-height: 2em;
+}
 
 p span.code {
     background-color: var(--pi-code-background);
@@ -1814,7 +1817,7 @@ p span.code {
 }
 
 input[type="text"],
-input[type="number"]
+input[type="number"],
 input[type="password"] {
     border-radius: 4px;
 }
