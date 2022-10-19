@@ -47,6 +47,7 @@ function connectElgatoStreamDeckSocket(
             initiateInputElement('githubRepo', payload.githubRepo, '');
             initiateInputElement('githubWorkflow', payload.githubWorkflow, '');
             initiateBlockElement('lastErrorMessage', payload.lastErrorMessage, '');
+            prepareWorkflowsBlock(payload.workflowsIDs);
         }
         if (jsonObj.event === 'didReceiveGlobalSettings') {
             const payload = jsonObj.payload.settings;
@@ -55,7 +56,22 @@ function connectElgatoStreamDeckSocket(
     };
 }
 
-// TODO: Send to plugin!
+function prepareWorkflowsBlock(workflowsIDs) {
+    document.getElementById('idsBlock').innerHTML = '';
+    let pl = JSON.parse(workflowsIDs);
+    let messageEl = document.createElement('div');
+    messageEl.className = '';
+    addWorkflowsAsList(pl.workflows);
+}
+
+function addWorkflowsAsList(workflows) {
+    workflows.forEach(workflow => {
+        let pEl = document.createElement('p');
+        pEl.innerHTML = `${workflow.name}: ${workflow.id}`;
+        appendToElement('idsBlock', pEl);
+    });
+}
+
 function sendValueToPlugin(value, param) {
     if (websocket && (websocket.readyState === 1)) {
         const json = {
@@ -84,6 +100,10 @@ function initiateBlockElement(element, value, fallback = '') {
         return;
     }
     document.getElementById(element).innerHTML = value;
+}
+
+function appendToElement(element, node) {
+    document.getElementById(element).appendChild(node);
 }
 
 function updateSettings() {

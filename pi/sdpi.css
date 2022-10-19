@@ -32,6 +32,10 @@ html {
     --pi-load-color: #ca8a0450;
     --pi-load-color-hover: #ca8a0480;
     --pi-load-color-active: #fbbf24;
+    --pi-error-border-color: #dc2626;
+    --pi-error-color: #dc262650;
+    --pi-error-color-hover: #dc262680;
+    --pi-error-color-active: #f87171;
     --pi-code-background: #9a9a9a40;
     --pi-code-border-color: #9a9a9a;
     height: 100%;
@@ -1723,6 +1727,10 @@ input[type="range"].colortemperature::-webkit-slider-thumb {
     padding-left: 16px;
 }
 
+.flex-row {
+    flex-direction: column;
+}
+
 .m-info {
     border-radius: 4px;
     border: 1px solid var(--pi-info-border-color);
@@ -1733,6 +1741,18 @@ input[type="range"].colortemperature::-webkit-slider-thumb {
     border-radius: 4px;
     border: 1px solid var(--pi-warning-border-color);
     background-color: var(--pi-warning-color);
+}
+
+.m-error {
+    border-radius: 4px;
+    border: 1px solid var(--pi-error-border-color);
+    background-color: var(--pi-error-color);
+}
+
+.m-text {
+    border-radius: 4px;
+    border: 1px solid var(--pi-code-border-color);
+    background-color: var(--pi-code-background);
 }
 
 button {

@@ -100,9 +100,18 @@ let githubCIAction = {
         xhr.onload = function (e) {
 
             if (xhr.status === 200) {
-                self.setState(context, 3).then(() => {
+                self.setState(context, 5).then(() => {
+                    console.log(xhr.response);
                     self.setTitle(context, githubRepo);
-                    self.setLastError(context, 'No error');
+                    let payload = {
+                        'githubUsername':   githubUsername,
+                        'githubRepo':       githubRepo,
+                        'githubWorkflow':   githubWorkflow,
+                        'githubToken':      githubToken,
+                        'lastErrorMessage': 'No errors.',
+                        'workflowsIDs':     xhr.response
+                    };
+                    self.setSettings(context, payload);
                 });
             } else {
                 self.setState(context, 4).then(() => {
