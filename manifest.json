@@ -71,7 +71,7 @@
   "SDKVersion": 2,
   "Author": "Dec04",
   "CodePath": "plugin/code.html",
-  "Description": "Get all information about Github Workflow.",
+  "Description": "Get information about GitHub workflow run.",
   "Name": "Github-CI",
   "Icon": "pluginIcon",
   "URL": "https://github.com/dec04",

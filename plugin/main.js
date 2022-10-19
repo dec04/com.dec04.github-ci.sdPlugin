@@ -6,6 +6,7 @@ let DestinationEnum = Object.freeze({ 'HARDWARE_AND_SOFTWARE': 0, 'HARDWARE_ONLY
 const GITHUB_API_URL = 'https://api.github.com/repos';
 const GITHUB_WORKFLOWS_PATH = 'actions/workflows';
 
+let xhr = new XMLHttpRequest();
 let periodTimer;
 let periodInterval;
 let timerFlag = false;
@@ -88,6 +89,7 @@ let githubCIAction = {
         clearInterval(periodTimer);
         clearInterval(periodInterval);
         timerFlag = false;
+        xhr.abort();
     },
 
     /**
@@ -298,7 +300,6 @@ let githubCIAction = {
      * @param callback callback function;
      */
     sendRequest: function (context, settings, url, callback) {
-        let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.setRequestHeader('Content-Type', `application/vnd.github+json`);
         xhr.setRequestHeader('Authorization', `Bearer ${githubToken}`);
@@ -363,7 +364,7 @@ function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, in
 
     websocket.onmessage = function (evt) {
         // Received message from Stream Deck
-        console.debug(evt.data);
+        // console.debug(evt.data);
 
         let jsonObj = JSON.parse(evt.data);
         let event = jsonObj['event'];
