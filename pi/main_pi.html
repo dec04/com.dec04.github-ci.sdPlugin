@@ -11,8 +11,7 @@
     <script src="main_pi.js"></script>
 </head>
 
-<!--<body onload="updateSettings();updateGlobal();">-->
-<body>
+<body onload="updateSettings();updateGlobal();">
 <div class="sdpi-wrapper">
 
     <div class="sdpi-heading">About</div>
@@ -45,6 +44,7 @@
         <div class="sdpi-item-label">Token</div>
         <input class="sdpi-item-value"
                id="githubToken"
+               onchange="updateGlobal();"
                required
                type="password"
                value=""
@@ -55,6 +55,7 @@
         <div class="sdpi-item-label">Username</div>
         <input class="sdpi-item-value"
                id="githubUsername"
+               onchange="updateSettings();"
                placeholder="e.g. dec04"
                required
                type="text"
@@ -65,6 +66,7 @@
         <div class="sdpi-item-label">Interval</div>
         <input class="sdpi-item-value"
                id="requestPoolingInterval"
+               onchange="updateSettings();"
                placeholder="e.g. 10000 (milliseconds))"
                required
                type="number"
@@ -75,6 +77,7 @@
         <div class="sdpi-item-label">Repository</div>
         <input class="sdpi-item-value"
                id="githubRepo"
+               onchange="updateSettings();"
                placeholder="e.g. somerepo"
                required
                type="text"
@@ -103,6 +106,7 @@
         <div class="sdpi-item-label">Workflow ID</div>
         <input class="sdpi-item-value"
                id="githubWorkflow"
+               onchange="updateSettings();"
                placeholder="e.g. 123456789"
                type="number"
                value="">
