@@ -72,11 +72,7 @@ let githubCIAction = {
      * @param coordinates event coordinates;
      */
     onWillAppear: async function (context, settings, coordinates) {
-        this.setRepoName(context, settings).then(() => {
-            periodTimer = setTimeout(() => {
-                this.fetchWorkflow(context, settings).then();
-            }, 1500);
-        });
+        this.setRepoName(context, settings).then();
     },
 
     /**
@@ -86,7 +82,7 @@ let githubCIAction = {
      * @param coordinates event coordinates;
      */
     onWillDisappear: function (context, settings, coordinates) {
-        clearInterval(periodTimer);
+        clearTimeout(periodTimer);
         clearInterval(periodInterval);
         timerFlag = false;
         xhr.abort();
@@ -177,12 +173,12 @@ let githubCIAction = {
     checkBeforeRequest: async function (context, settings, checkAllParams) {
         if (settings != null) {
             let condition = checkAllParams ?
-                            settings.hasOwnProperty('githubUsername') && settings['githubUsername'] === '' ||
-                                settings.hasOwnProperty('githubRepo') && settings['githubRepo'] === '' ||
-                                settings.hasOwnProperty('githubWorkflow') && settings['githubWorkflow'] === '' ||
+                            (settings.hasOwnProperty('githubUsername') && settings['githubUsername'] === '') ||
+                                (settings.hasOwnProperty('githubRepo') && settings['githubRepo'] === '') ||
+                                (settings.hasOwnProperty('githubWorkflow') && settings['githubWorkflow'] === '') ||
                                 githubToken === '' :
-                            settings.hasOwnProperty('githubUsername') && settings['githubUsername'] === '' ||
-                                settings.hasOwnProperty('githubRepo') && settings['githubRepo'] === '' ||
+                            (settings.hasOwnProperty('githubUsername') && settings['githubUsername'] === '') ||
+                                (settings.hasOwnProperty('githubRepo') && settings['githubRepo'] === '') ||
                                 githubToken === '';
 
             if (condition) {
@@ -192,7 +188,9 @@ let githubCIAction = {
                     `githubWorkflow: ${settings['githubWorkflow']}<br/>` +
                     `githubToken: ${githubToken}<br/>`;
 
-                this.setState(context, 2).then(() => this.setLastError(context, settings, checkText));
+                this.setState(context, 2).then(() =>
+                    this.setTitle(context, 'SETTINGS!').then(() =>
+                        this.setLastError(context, settings, checkText)));
 
                 return false;
             } else {
@@ -251,33 +249,38 @@ let githubCIAction = {
                         if (responseJson['total_count'] > 0) {
                             if (runs[0].status === Status.COMPLETED) {
 
-                                self.setState(context, 3).then();
-                                clearInterval(periodInterval);
-                                timerFlag = false;
+                                self.setState(context, 3).then(() => {
+                                    clearInterval(periodInterval);
+                                    timerFlag = false;
+                                    self.setLastError(context, settings, runs[0].status);
+                                });
 
                             } else if (runs[0].status === Status.CANCELLED ||
                                 runs[0].status === Status.ACTION_REQUIRED ||
                                 runs[0].status === Status.FAILURE ||
                                 runs[0].status === Status.NEUTRAL) {
 
-                                self.setState(context, 6).then();
-                                clearInterval(periodInterval);
-                                timerFlag = false;
+                                self.setState(context, 6).then(() => {
+                                    clearInterval(periodInterval);
+                                    timerFlag = false;
+                                    self.setLastError(context, settings, runs[0].status);
+                                });
 
                             } else if (runs[0].status === Status.IN_PROGRESS ||
                                 runs[0].status === Status.QUEUED ||
                                 runs[0].status === Status.REQUESTED ||
                                 runs[0].status === Status.WAITING) {
 
-                                self.setState(context, 7).then();
+                                self.setState(context, 7).then(() => {
+                                    if (!timerFlag) {
+                                        periodInterval = setInterval(() => self.fetchWorkflow(context, settings), 15000);
+                                        timerFlag = true;
+                                        self.setLastError(context, settings, runs[0].status);
 
-                                if (!timerFlag) {
-                                    periodInterval = setInterval(() => self.fetchWorkflow(context, settings), 15000);
-                                    timerFlag = true;
-                                }
+                                    }
+                                });
                             }
 
-                            self.setLastError(context, settings, runs[0].status);
                         } else {
                             self.setState(context, 4).then(() => {
                                 self.setLastError(context, settings,
@@ -318,10 +321,12 @@ let githubCIAction = {
             }
         };
 
-        xhr.onerror = function () { // происходит, только когда запрос совсем не получилось выполнить
+        xhr.onerror = function (e) { // происходит, только когда запрос совсем не получилось выполнить
             console.error(`Ошибка соединения`);
 
-            self.setState(context, 2).then();
+            this.setState(context, 2).then(() =>
+                this.setTitle(context, 'SETTINGS!').then(() =>
+                    this.setLastError(context, settings, xhr.response)));
         };
 
         xhr.onprogress = function () {
@@ -375,7 +380,7 @@ function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, in
         if (event === 'sendToPlugin') {
             let jsonPayload = jsonObj['payload'];
             let settings = jsonPayload['settings'];
-            if (jsonPayload.hasOwnProperty('piAction') && jsonPayload['piAction'] === 'sendToPlugin') {
+            if (jsonPayload.hasOwnProperty('piAction') && jsonPayload['piAction'] === 'loadWorkflow') {
                 console.log(`[sendToPlugin]: ${jsonPayload.piAction}`);
                 githubCIAction.fetchWorkflows(context, settings);
             }

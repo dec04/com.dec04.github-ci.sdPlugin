@@ -14,7 +14,6 @@
         {
           "Image": "resources/loading",
           "Name": "Loading",
-          "Title": "Loading",
           "TitleAlignment": "bottom",
           "ShowTitle": true,
           "FontSize": "8"
@@ -22,7 +21,6 @@
         {
           "Image": "resources/error",
           "Name": "Error",
-          "Title": "SETTINGS!",
           "ShowTitle": true,
           "FontSize": "8"
         },
