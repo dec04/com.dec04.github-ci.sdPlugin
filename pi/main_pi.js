@@ -1,8 +1,5 @@
-// noinspection DuplicatedCode
-
 let websocket    = null,
     uuid         = null,
-    inActionInfo = null,
     actionInfo   = {};
 
 function connectElgatoStreamDeckSocket(
@@ -48,7 +45,7 @@ function connectElgatoStreamDeckSocket(
             initiateInputElement('githubWorkflow', payload.githubWorkflow, '');
             initiateBlockElement('lastErrorMessage', payload.lastErrorMessage, '');
             initiateBlockElement('requestPoolingInterval', payload.requestPoolingInterval, '');
-            prepareWorkflowsBlock(payload.workflowsIDs);
+            addWorkflowsAsList(payload.workflowsIDs);
         }
         if (jsonObj.event === 'didReceiveGlobalSettings') {
             const payload = jsonObj.payload.settings;
@@ -57,6 +54,52 @@ function connectElgatoStreamDeckSocket(
     };
 }
 
+/**
+ * Method add workflows to dom element requested from github api
+ * @param workflows id's of workflows
+ */
+function addWorkflowsAsList(workflows) {
+    let text = '';
+    workflows.forEach(workflow => {
+        text += `${workflow.name}: ${workflow.id}<br/>`;
+    });
+    initiateBlockElement('idsBlock', '', '');
+    initiateBlockElement('idsBlock', text);
+}
+
+/**
+ * Method initiate dom elements with value
+ * @param element id of dom element
+ * @param value element value
+ * @param fallback as is, fallback for value
+ */
+function initiateInputElement(element, value, fallback = '') {
+    if (typeof value === 'undefined') {
+        document.getElementById(element).value = fallback;
+        return;
+    }
+    document.getElementById(element).value = value;
+}
+
+/**
+ * Method initiate dom elements with value
+ * @param element id of dom element
+ * @param value element value
+ * @param fallback as is, fallback for value
+ */
+function initiateBlockElement(element, value, fallback = '') {
+    if (typeof value === 'undefined') {
+        document.getElementById(element).innerHTML = fallback;
+        return;
+    }
+    document.getElementById(element).innerHTML = value;
+}
+
+/**
+ * Method send to
+ * @param value value to send
+ * @param param payload parameters name name
+ */
 function sendValueToPlugin(value, param) {
     if (websocket && (websocket.readyState === 1)) {
         let payload = {};
@@ -77,39 +120,9 @@ function sendValueToPlugin(value, param) {
     }
 }
 
-function prepareWorkflowsBlock(workflowsIDs) {
-    addWorkflowsAsList(workflowsIDs);
-}
-
-function addWorkflowsAsList(workflows) {
-    let text = '';
-    workflows.forEach(workflow => {
-        text += `${workflow.name}: ${workflow.id}<br/>`;
-    });
-    initiateBlockElement('idsBlock', '', '');
-    initiateBlockElement('idsBlock', text);
-}
-
-function initiateInputElement(element, value, fallback = '') {
-    if (typeof value === 'undefined') {
-        document.getElementById(element).value = fallback;
-        return;
-    }
-    document.getElementById(element).value = value;
-}
-
-function initiateBlockElement(element, value, fallback = '') {
-    if (typeof value === 'undefined') {
-        document.getElementById(element).innerHTML = fallback;
-        return;
-    }
-    document.getElementById(element).innerHTML = value;
-}
-
-function appendToElement(element, node) {
-    document.getElementById(element).appendChild(node);
-}
-
+/**
+ * Method update stream deck settings
+ */
 function updateSettings() {
     if (websocket && websocket.readyState === 1) {
         let payload = {};
@@ -125,6 +138,9 @@ function updateSettings() {
     }
 }
 
+/**
+ * Method update stream deck global settings
+ */
 function updateGlobal() {
     if (websocket && websocket.readyState === 1) {
         let payload = {};
@@ -139,6 +155,10 @@ function updateGlobal() {
     }
 }
 
+/**
+ * Open external url
+ * @param site web site url without schema
+ */
 function openPage(site) {
     if (websocket && websocket.readyState === 1) {
         const json = {

@@ -73,7 +73,7 @@
   "Name": "Github-CI",
   "Icon": "pluginIcon",
   "URL": "https://github.com/dec04/com.dec04.github-ci.sdPlugin",
-  "Category": "Dec04 Github CI",
+  "Category": "Github CI",
   "CategoryIcon": "resources/categoryIcon",
   "PropertyInspectorPath": "pi/main_pi.html",
   "Version": "1.0.0",

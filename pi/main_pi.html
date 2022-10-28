@@ -14,24 +14,9 @@
 <body onload="updateSettings();updateGlobal();">
 <div class="sdpi-wrapper">
 
-    <div class="sdpi-heading">About</div>
-
-    <h4>Why?</h4>
-    <p>I really like the Stream Desk platform, and I use it to the maximum. But unfortunately I did not find the plugins
-        I needed, so I decided to make them myself.</p>
-    <p>These plugin are provided 'as is'.</p>
-    <h4>P.S.</h4>
-    <p>I hope you enjoy extending your Stream Deck with my plugin.</p>
-    <p>Enjoy!</p>
-    <p>Your
-        <mark>Dec04</mark>
-        chaps.
-    </p>
-
     <div class="wrapper">
         <div class="item">
-            <div class="message m-warning">
-                <img src="../resources/warning.gif" alt="Warning">
+            <div class="message">
                 <span>Please do not set a title or an image for this plugin as they are
             being generated on the fly!</span>
             </div>
@@ -87,7 +72,7 @@
     <div class="sdpi-heading">Workflows</div>
 
     <div class="sdpi-item mb-16" id="fetchIDsButton">
-        <button class="sdpi-item-value m-load" onclick="sendValueToPlugin('loadWorkflow', 'piAction')" value="">
+        <button class="sdpi-item-value" onclick="sendValueToPlugin('loadWorkflow', 'piAction')" value="">
             Fetch Workflows ID's
         </button>
     </div>
@@ -97,7 +82,7 @@
     <div class="sdpi-item">
         <div class="wrapper w-100">
             <div class="item">
-                <div class="message m-text flex-row" id="idsBlock"></div>
+                <div class="message flex-row" id="idsBlock"></div>
             </div>
         </div>
     </div>
@@ -113,7 +98,7 @@
     </div>
 
     <div class="sdpi-item mb-16" id="saveParamsButton">
-        <button class="sdpi-item-value m-success" onclick="updateGlobal();updateSettings();" value="">
+        <button class="sdpi-item-value" onclick="updateGlobal();updateSettings();" value="">
             Save
         </button>
     </div>
@@ -123,7 +108,7 @@
     <div class="sdpi-item">
         <div class="wrapper w-100">
             <div class="item">
-                <div class="message m-error">
+                <div class="message">
                     <img alt="Warning" src="../resources/error.gif">
                     <span id="lastErrorMessage">This will be the last error message!</span>
                 </div>
@@ -147,9 +132,10 @@
             <p>7. Click <span class="code">save</span> button;</p>
             <p>8. If any trouble, see <br/><span class="code">Errors / No errors / Response text</span> block;</p>
             <h4>Github:</h4>
-            <p>More information can be found at Github</p>
-            <a class="info" href="#" onclick="openPage('github.com/dec04/com.dec04.github-ci.sdPlugin')">Check
-                on Github</a>
+            <p>More information can be found
+                <a class="info" href="#" onclick="openPage('github.com/dec04/com.dec04.github-ci.sdPlugin')">at
+                    Github</a></p>
+
         </details>
     </div>
     <div class="sdpi-item">
