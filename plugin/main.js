@@ -247,35 +247,51 @@ let githubCIAction = {
                         let runs = responseJson['workflow_runs'];
 
                         if (responseJson['total_count'] > 0) {
-                            if (runs[0].status === Status.COMPLETED) {
+                            console.log(responseJson);
 
-                                self.setState(context, 3).then(() => {
-                                    clearInterval(periodInterval);
-                                    timerFlag = false;
-                                    self.setLastError(context, settings, runs[0].status);
-                                });
+                            const run = runs[0];
 
-                            } else if (runs[0].status === Status.CANCELLED ||
-                                runs[0].status === Status.ACTION_REQUIRED ||
-                                runs[0].status === Status.FAILURE ||
-                                runs[0].status === Status.NEUTRAL) {
+                            if (run.status === Status.COMPLETED) {
+                                if (run.conclusion === 'success') {
+                                    self.setState(context, 3).then(() => {
+                                        clearInterval(periodInterval);
+                                        timerFlag = false;
+                                        self.setLastError(context, settings, run.status);
+                                    });
+                                } else if (run.conclusion === 'cancelled') {
+                                    self.setState(context, 8).then(() => {
+                                        clearInterval(periodInterval);
+                                        timerFlag = false;
+                                        self.setLastError(context, settings, run.status);
+                                    });
+                                } else {
+                                    self.setState(context, 6).then(() => {
+                                        clearInterval(periodInterval);
+                                        timerFlag = false;
+                                        self.setLastError(context, settings, run.status);
+                                    });
+                                }
+                            } else if (run.status === Status.CANCELLED ||
+                                run.status === Status.ACTION_REQUIRED ||
+                                run.status === Status.FAILURE ||
+                                run.status === Status.NEUTRAL) {
 
                                 self.setState(context, 6).then(() => {
                                     clearInterval(periodInterval);
                                     timerFlag = false;
-                                    self.setLastError(context, settings, runs[0].status);
+                                    self.setLastError(context, settings, run.status);
                                 });
 
-                            } else if (runs[0].status === Status.IN_PROGRESS ||
-                                runs[0].status === Status.QUEUED ||
-                                runs[0].status === Status.REQUESTED ||
-                                runs[0].status === Status.WAITING) {
+                            } else if (run.status === Status.IN_PROGRESS ||
+                                run.status === Status.QUEUED ||
+                                run.status === Status.REQUESTED ||
+                                run.status === Status.WAITING) {
 
                                 self.setState(context, 7).then(() => {
                                     if (!timerFlag) {
                                         periodInterval = setInterval(() => self.fetchWorkflow(context, settings), 15000);
                                         timerFlag = true;
-                                        self.setLastError(context, settings, runs[0].status);
+                                        self.setLastError(context, settings, run.status);
 
                                     }
                                 });

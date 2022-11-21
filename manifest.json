@@ -59,6 +59,13 @@
           "TitleAlignment": "bottom",
           "ShowTitle": true,
           "FontSize": "8"
+        },
+        {
+          "Image": "resources/user-cancel",
+          "Name": "User cancel",
+          "TitleAlignment": "bottom",
+          "ShowTitle": true,
+          "FontSize": "8"
         }
       ],
       "SupportedInMultiActions": false,
@@ -76,7 +83,7 @@
   "Category": "Github CI",
   "CategoryIcon": "resources/categoryIcon",
   "PropertyInspectorPath": "pi/main_pi.html",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "OS": [
     {
       "Platform": "mac",
