@@ -55,7 +55,7 @@ function connectElgatoStreamDeckSocket(
 }
 
 /**
- * Method add workflows to dom element requested from github api
+ * Method add workflows to dom element requested from GitHub api
  * @param workflows id's of workflows
  */
 function addWorkflowsAsList(workflows) {
@@ -98,7 +98,7 @@ function initiateBlockElement(element, value, fallback = '') {
 /**
  * Method send to
  * @param value value to send
- * @param param payload parameters name name
+ * @param param payload parameters name
  */
 function sendValueToPlugin(value, param) {
     if (websocket && (websocket.readyState === 1)) {
